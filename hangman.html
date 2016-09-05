@@ -1,0 +1,115 @@
+<html>
+
+<head>
+	<style>
+		.letter::before {
+			opacity: 1;
+			content: "_";
+			position: absolute;
+		}
+		
+		.letter {
+			display: inline-block;
+			width: 10px;
+			padding: 5px;
+		}
+		
+		svg * {
+			fill: none;
+			stroke: black;
+			visibility: hidden;
+			stroke-width: 2;
+		}
+	</style>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<script>
+		var part = -1;
+		var parts = [
+			"base",
+			"strut",
+			"top",
+			"rope",
+			"face",
+			"body",
+			"left_arm",
+			"right_arm",
+			"left_leg",
+			"right_leg"
+		];
+		
+		function init(d) { 
+			var words = d.split("\n");
+			var word = words[Math.floor(Math.random()*words.length)];
+			
+			var div = $("<div></div>");
+			for (var c in word) {
+				div.append($("<span></span>")
+					.addClass("letter")
+					.append($("<span></span>")
+						.addClass(word[c])
+						.text(word[c])
+						.css({opacity: 0})
+					)
+				);
+			}
+			$("body").append(div);
+			
+			div = $("<div></div>");
+			for (var i = 0, c = "a"; i < 26; ++i, c = String.fromCharCode(97 + i)){
+				div.append($("<button></button>")
+					.text(c)
+					.click(guess)
+					.attr("id", c)
+				);
+			}
+			$("body").append(div);
+		}
+		
+		function guess(){
+			if (this.disabled) return;
+			this.disabled = true;
+			
+			var complete = $.map($(".letter *"), function(v) {
+				return $(v).css("opacity") == 1;
+			}).reduce(function(a, b) {
+				return a && b;
+			});
+			
+			if (!complete) {
+				if ($( "."+$(this).text() ).css("opacity", 1).length > 0) return
+				if (++part < parts.length) {
+					$("#"+parts[part]).css("visibility", "visible");
+					return;
+				}
+			}
+			
+			$("button").each( function(){this.disabled = true;} );
+			$(".letter span").each(function(){
+				$(this).css({ color: $(this).css("opacity") == 0 ? "red" : "green", opacity: 1 })
+			});
+		}
+		
+		$.get("https://raw.githubusercontent.com/atebits/Words/master/Words/en.txt").done(init);
+		$(document).keypress(function(k){
+			guess.call($("#"+String.fromCharCode(k.which)).get()[0]);
+		});
+	</script>
+</head>
+
+<body>
+	<svg viewBox="-10 -10 130 120" width="140px" height="130px">
+		<path id="base" d="M 0 110 L 120 110" />
+		<path id="strut" d="M 30 0 L 30 110" />
+		<path id="top" d="M 10 0 L 100 0" />
+		<path id="rope" d="M 80 0 L 80 20" />
+		<circle id="face" cx="80" cy="30" r="10"></circle>
+		<path id="body" d="M 80 40 L 80 70" />
+		<path id="left_arm" d="M 80 40 L 70 60" />
+		<path id="right_arm" d="M 80 40 L 90 60" />
+		<path id="left_leg" d="M 80 70 L 70 90" />
+		<path id="right_leg" d="M 80 70 L 90 90" />
+	</svg>
+</body>
+
+</html>
